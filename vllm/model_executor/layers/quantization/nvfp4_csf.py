@@ -236,8 +236,13 @@ class Nvfp4CsfMoEMethod(FusedMoEMethodBase):
                     if self.encoding == "csf"
                     else ("bases", "codes", "page_bases", "offsets", "exceptions")
                 )
+                sources = [parts[field] for field in fields]
+                # Containers store the slab fixed stream flat; view it in the
+                # (rows // 16, -1) geometry CsfSource.validate expects.
+                if self.encoding == "csf" and sources[0].ndim == 1:
+                    sources[0] = sources[0].view(rows // 16, -1)
                 values["scales"] = stage_csf_sources(
-                    [tuple(parts[field] for field in fields)],
+                    [tuple(sources)],
                     rows=rows,
                     columns=columns,
                     quantization="nvfp4",
